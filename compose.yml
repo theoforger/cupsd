@@ -1,0 +1,16 @@
+services:
+  cupsd:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: cupsd
+    privileged: true
+    restart: unless-stopped
+    ports:
+      - '631:631'
+    volumes:
+      - /dev/bus/usb:/dev/bus/usb
+      - /var/run/dbus:/var/run/dbus
+      - cups-config:/etc/cups
+volumes:
+  cups-config: 
