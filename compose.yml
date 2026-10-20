@@ -6,11 +6,12 @@ services:
     container_name: cupsd
     privileged: true
     restart: unless-stopped
-    ports:
-      - '631:631'
+    # Host networking so mDNS printer announcements reach the LAN
+    network_mode: host
+    environment:
+      CUPS_ADMIN_PASSWORD: ${CUPS_ADMIN_PASSWORD:-}
     volumes:
       - /dev/bus/usb:/dev/bus/usb
-      - /var/run/dbus:/var/run/dbus
       - cups-config:/etc/cups
 volumes:
-  cups-config: 
+  cups-config:

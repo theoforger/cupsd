@@ -16,24 +16,17 @@ RUN apt-get update && apt-get install -y \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-# Configure CUPS for remote access
-RUN sed -i 's/^Listen .*/Listen 0.0.0.0:631/' /etc/cups/cupsd.conf && \
-    sed -i 's/<Location \/>/<Location \/>\
-  Order allow,deny\
-  Allow all/' /etc/cups/cupsd.conf && \
-    sed -i 's/<Location \/admin>/<Location \/admin>\
-  Order allow,deny\
-  Allow all/' /etc/cups/cupsd.conf && \
-    sed -i 's/<Location \/admin\/conf>/<Location \/admin\/conf>\
-  Order allow,deny\
-  Allow all/' /etc/cups/cupsd.conf
+# Admin user for the web interface; password is set at startup from CUPS_ADMIN_PASSWORD
+RUN useradd -r -M -G lpadmin -s /usr/sbin/nologin cupsadmin
+
+# /etc/cups is a volume, so keep the config outside it and install it on every start
+COPY cupsd.conf /usr/share/cupsd/cupsd.conf
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
 
 # Runtime directories
 RUN mkdir -p /run/cups /run/dbus
 
 EXPOSE 631
 
-# Start dbus, avahi, and keep CUPS in foreground
-CMD dbus-daemon --system && \
-    avahi-daemon --daemonize --no-chroot && \
-    cupsd -f
+ENTRYPOINT ["/entrypoint.sh"]
