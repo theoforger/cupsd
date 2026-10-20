@@ -17,5 +17,15 @@ dbus-uuidgen --ensure
 dbus-daemon --system
 avahi-daemon --daemonize --no-chroot
 
+# Share the scanner via AirSane, restarting it if it exits. Runs as root
+# because there is no udev in the container to grant the saned user USB access.
+(
+    while :; do
+        airsaned --hotplug=true --local-scanners-only=true
+        echo "airsaned exited, restarting in 5s" >&2
+        sleep 5
+    done
+) &
+
 # Keep CUPS in the foreground as PID 1 so it receives stop signals
 exec cupsd -f
